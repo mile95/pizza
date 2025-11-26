@@ -15,49 +15,45 @@ function sumPizzaCosts() {
     totalCell.textContent = total.toFixed(2);
 }
 
-function countIngredients() {
+function addTopTenMostCommonIngridients() {
+
     const table = document.querySelector("#pizza-table");
-    const ingredientCells = table.querySelectorAll("[data-ingredients]");
     const ingredientCount = {};
+
+    const ingredientCells = table.querySelectorAll("[data-ingredients]");
 
     ingredientCells.forEach(cell => {
         const raw = cell.dataset.ingredients;
-        if (raw) {
-            const ingredients = raw.split(",")
-                .map(ing => ing.trim().toLowerCase())
-                .filter(ing => ing.length > 0);
+        const ingredients = raw ? raw.split(",") : [];
 
-            ingredients.forEach(ingredient => {
-                ingredientCount[ingredient] = (ingredientCount[ingredient] || 0) + 1;
-            });
-        }
+        ingredients.forEach(ingredient => {
+            const trimmed = ingredient.trim().toLowerCase();
+            if (trimmed) {
+                if (!ingredientCount[trimmed]) {
+                    ingredientCount[trimmed] = 0;
+                }
+                ingredientCount[trimmed] += 1;
+            }
+        });
     });
 
-    const ingredientTableBody = document.querySelector("#ingredient-count-body");
-    ingredientTableBody.innerHTML = "";
+    const sortedIngredients = Object.entries(ingredientCount)
+        .map(([ingredient, count]) => ({ ingredient, count }))
+        .sort((a, b) => b.count - a.count);
 
-    const sorted = Object.entries(ingredientCount).sort((a, b) =>
-        a[0].localeCompare(b[0])
-    );
+    const topIngredients = sortedIngredients.slice(0, 10);
 
-    sorted.forEach(([ingredient, count]) => {
-        const row = document.createElement("tr");
+    const topIngredientsList = document.querySelector("#top-ingredients-list");
+    topIngredientsList.innerHTML = "";
 
-        const nameCell = document.createElement("td");
-        nameCell.textContent = ingredient;
-
-        const countCell = document.createElement("td");
-        countCell.textContent = count.toString();
-
-        row.appendChild(nameCell);
-        row.appendChild(countCell);
-        ingredientTableBody.appendChild(row);
+    topIngredients.forEach(({ ingredient, count }) => {
+        const listItem = document.createElement("li");
+        listItem.textContent = `${ingredient} [${count}]`;
+        topIngredientsList.appendChild(listItem);
     });
 }
 
-
-
 document.addEventListener("DOMContentLoaded", () => {
     sumPizzaCosts();
-    countIngredients();
+    addTopTenMostCommonIngridients();
 });
